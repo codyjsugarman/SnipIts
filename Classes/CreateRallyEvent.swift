@@ -18,12 +18,8 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
     let categoryPickerOptions = ["Community Service", "Lecture", "Party", "Performance", "Pick-up Games", "Political Awareness", "Pre-party", "Pre-professional", "Social Activism", "Sporting Event", "Study Groups", "Other"]
     let sponsorPicker = UIPickerView()
     var sponsorPickerOptions = ["No Sponsor"]
-    
-//    let targetPicker = UIPickerView()
-//    let targetPickerOptions = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250]
-    
-//    let daysToRallyPicker = UIPickerView()
-//    let daysToRallyPickerOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+    let lengthPicker = UIPickerView()
+    var lengthPickerOptions = ["30 mins", "1 hour", "2 hours", "3 hours", "4 hours", "5 hours", "6 hours", "All day"]
     
     @IBOutlet weak var eventImage: UIImageView!
     @IBOutlet weak var eventTitle: UITextField!
@@ -31,10 +27,8 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
     @IBOutlet weak var eventCategory: UITextField!
     @IBOutlet weak var eventSponsor: UITextField!
     @IBOutlet weak var eventDate: UITextField!
-//    @IBOutlet weak var eventTarget: UITextField!
-//    @IBOutlet weak var eventDaysToRally: UITextField!
     @IBOutlet weak var eventDescription: UITextView!
-    
+    @IBOutlet weak var eventLength: UITextField!
     
     func setUpSponsorOptions() {
         let currentUser = PFUser.currentUser()
@@ -55,12 +49,9 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
         categoryPicker.delegate = self
         categoryPicker.dataSource = self
         categoryPicker.tag = 2
-//        targetPicker.delegate = self
-//        targetPicker.dataSource = self
-//        targetPicker.tag = 3
-//        daysToRallyPicker.delegate = self
-//        daysToRallyPicker.dataSource = self
-//        daysToRallyPicker.tag = 4
+        lengthPicker.delegate = self
+        lengthPicker.dataSource = self
+        lengthPicker.tag = 3
         setUpSponsorOptions()
     }
     
@@ -126,14 +117,10 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
         else if (pickerView.tag == 2) {
             return categoryPickerOptions.count
         }
-        // Target
-//        else if (pickerView.tag == 3) {
-//            return targetPickerOptions.count
-//        }
-//        // Days to rally
-//        else if (pickerView.tag == 4) {
-//            return daysToRallyPickerOptions.count
-//        }
+        // Length
+        else if (pickerView.tag == 3) {
+            return lengthPickerOptions.count
+        }
         return -1
     }
     
@@ -146,14 +133,10 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
         else if (pickerView.tag == 2) {
             return categoryPickerOptions[row]
         }
-        // Target
-//        else if (pickerView.tag == 3) {
-//            return String(targetPickerOptions[row])
-//        }
-        // Days to rally
-//        else if (pickerView.tag == 4) {
-//            return String(daysToRallyPickerOptions[row])
-//        }
+        // Length
+        else if (pickerView.tag == 3) {
+            return String(lengthPickerOptions[row])
+        }
         return ""
     }
     
@@ -166,14 +149,10 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
         else if (pickerView.tag == 2) {
             eventCategory.text = categoryPickerOptions[row]
         }
-        // Target
-//        else if (pickerView.tag == 3) {
-//            eventTarget.text = String(targetPickerOptions[row])
-//        }
-        // Days to rally
-//        else if (pickerView.tag == 4) {
-//            eventDaysToRally.text = String(daysToRallyPickerOptions[row])
-//        }
+        // Length
+        else if (pickerView.tag == 3) {
+            eventLength.text = String(lengthPickerOptions[row])
+        }
     }
     
     // Handles the date picker
@@ -192,32 +171,20 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
         datePickerView.minimumDate = NSDate()
     }
     
-//    @IBAction func targetFieldSelected(sender: UITextField) {
-//        sender.inputView = targetPicker
-//    }
+    @IBAction func lengthFieldSelected(sender: UITextField) {
+        sender.inputView = lengthPicker
+    }
     
-//    @IBAction func daysToRallyFieldSelected(sender: UITextField) {
-//        sender.inputView = daysToRallyPicker
-//    }
     
     // Save/Cancel event actions
     func fieldsFull() -> Bool {
-        if (eventTitle.text == "" || eventDate.text == "" || eventCategory.text == "" || eventDescription.text == "" || eventLocation.text == "" || eventSponsor.text == "") {
+        if (eventTitle.text == "" || eventDate.text == "" || eventCategory.text == "" || eventDescription.text == "" || eventLocation.text == "" || eventSponsor.text == "" || eventLength.text == "") {
             let fieldsEmptyAlert = UIAlertView(title: "Fields Empty", message: "Please fill out all event fields", delegate: self, cancelButtonTitle: "OK")
             fieldsEmptyAlert.show()
             return false
         }
         return true
     }
-    
-//    func intIsString() -> Bool {
-//        if (Int(eventTarget.text!) != nil) {
-//            return true
-//        }
-//        let pleaseEnterInteger = UIAlertView(title: "Please Enter an Integer", message: "Please enter an integer for both the event target and days to rally field", delegate: self, cancelButtonTitle: "OK")
-//        pleaseEnterInteger.show()
-//        return false
-//    }
     
     func sponsorIsSponsor() -> Bool {
         if (sponsorPickerOptions.indexOf(eventSponsor.text!) != nil) {
@@ -265,8 +232,7 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
         newRallyEvent["eventTitle"] = eventTitle.text
         newRallyEvent["eventLocation"] = eventLocation.text
         newRallyEvent["eventDate"] = eventDate.text
-//        newRallyEvent["eventTargetNumAttendees"] = Int(eventTarget.text!)
-//        newRallyEvent["eventNumDaysFundraising"] = Int(eventDaysToRally.text!)
+        newRallyEvent["eventLength"] = eventLength.text
         newRallyEvent["eventNumAttendees"] = 1
         newRallyEvent["eventIsHappening"] = false
         let eventAttendees = [currentUser.username] as [String!]

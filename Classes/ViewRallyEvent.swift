@@ -14,17 +14,14 @@ class ViewRallyEvent: UITableViewController {
     
     var rallyEvent:PFObject!
     
-//    @IBOutlet weak var eventProgress: UIProgressView!
+    
+    @IBOutlet weak var eventCountdown: UIButton!
     @IBOutlet weak var joinOrLeaveEvent: UIButton!
     @IBOutlet weak var eventImage: UIImageView!
     @IBOutlet weak var eventDate: UITextField!
-    @IBOutlet weak var eventLocation: UITextField!
-    @IBOutlet weak var eventSponsor: UITextField!
-//    @IBOutlet weak var eventTimeRemaining: UITextField!
-    @IBOutlet weak var eventCategory: UITextField!
     @IBOutlet weak var eventDescription: UITextView!
     @IBOutlet weak var eventNumAttendees: UITextField!
-//    @IBOutlet weak var eventTarget: UITextField!
+    @IBOutlet weak var eventTitle: UILabel!
     
     func stringFromTimeInterval(interval:NSTimeInterval) -> NSString {
         let ti = NSInteger(interval)
@@ -65,75 +62,91 @@ class ViewRallyEvent: UITableViewController {
                 if let imageData = imageData {
                     let image = UIImage(data:imageData)
                     self.eventImage.image = image
+                    self.view.backgroundColor = UIColor.clearColor()
+                    
+//                    //Blur entire view (when user has joined event to show countdown?)
+//                    let blurEffect = UIBlurEffect(style: UIBlurEffectStyle.Dark)
+//                    let blurEffectView = UIVisualEffectView(effect: blurEffect)
+//                    blurEffectView.frame = self.view.bounds
+//                    blurEffectView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
+//                    self.view.addSubview(blurEffectView)
+            
                 }
             }
         }
     }
     
-//    func assignEventProgress(rallyEvent :PFObject) {
-//        let numAttendees = rallyEvent["eventNumAttendees"] as! Float
-//        let target = rallyEvent["eventTargetNumAttendees"] as! Float
-//        eventProgress.progress = numAttendees/target
-//        eventProgress.transform = CGAffineTransformMakeScale(1, 10)
-//    }
-    
-    //Add rounding so no decimals!
-    func appendPrediction() -> String {
-        let numAttendees = rallyEvent["eventNumAttendees"] as! Int!
-        let attendees = String(numAttendees)
-        let numRSVP = rallyEvent["eventNumAttendees"] as! Double!
-        var predictionConstant = 1.0
-        if (eventCategory.text == "Community Service") {
-            predictionConstant = 0.77
-        } else if (eventCategory.text == "Lecture") {
-            predictionConstant = 0.65
-        } else if (eventCategory.text == "Party") {
-            predictionConstant = 0.80
-        } else if (eventCategory.text == "Performance") {
-            predictionConstant = 0.72
-        } else if (eventCategory.text == "Pick-up Games") {
-            predictionConstant = 0.85
-        } else if (eventCategory.text == "Political Awareness") {
-            predictionConstant = 0.87
-        } else if (eventCategory.text == "Pre-party") {
-            predictionConstant = 0.85
-        } else if (eventCategory.text == "Pre-profressional") {
-            predictionConstant = 0.82
-        } else if (eventCategory.text == "Social Activism") {
-            predictionConstant = 0.73
-        } else if (eventCategory.text == "Sporting Event") {
-            predictionConstant = 0.90
-        } else if (eventCategory.text == "Study Groups") {
-            predictionConstant = 1.0
-        } else if (eventCategory.text == "Other") {
-            predictionConstant = 0.75
-        }
-        let prediction = numRSVP*predictionConstant
-        var predictionString = ""
-        let roundedPrediction = Int(prediction)
-        if (roundedPrediction == 1) {
-            predictionString = attendees + " (1 attendee predicted)"
-        } else {
-            predictionString = attendees + " (" + String(stringInterpolationSegment: roundedPrediction) + " predicted)"
-        }
-        return predictionString
-    }
-    
     func setEventInfo(rallyEvent :PFObject) {
         setEventPhoto(rallyEvent)
-        eventDate.text = rallyEvent["eventDate"] as! String!
-//        let eventTargetNumAttendees = rallyEvent["eventTargetNumAttendees"] as! Int!
-//        eventTarget.text = String(eventTargetNumAttendees)
-        eventLocation.text = rallyEvent["eventLocation"] as! String!
-        eventSponsor.text = rallyEvent["eventSponsor"] as! String!
-//        let timeRemaining = calculateTimeRemaining()
-//        eventTimeRemaining.text = timeRemaining
-        eventCategory.text = rallyEvent["eventCategory"] as! String!
+        let date = rallyEvent["eventDate"] as! String
+        var eventArray = date.componentsSeparatedByString(", ")
+        let dateString = eventArray[0]
+        let timeString = eventArray[1]
+        let dateAndTime = synthesizeDateAndTime(dateString, eventTime: timeString)
+        let eventLocation = rallyEvent["eventLocation"] as! String!
+        eventDate.text = dateAndTime + " @ " + eventLocation
         eventDescription.text = rallyEvent["eventDescription"] as! String!
         let numAttendees = rallyEvent["eventNumAttendees"] as! Int
         let attendees = String(numAttendees)
         eventNumAttendees.text = attendees
-//        assignEventProgress(rallyEvent)
+    }
+    
+    func synthesizeDateAndTime(eventDate :String, eventTime :String) -> String {
+        let formatter  = NSDateFormatter()
+        formatter.dateFormat = "M/d/yy"
+        let todayDate = formatter.dateFromString(eventDate)!
+        let myCalendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
+        let myComponents = myCalendar.components(.Weekday, fromDate: todayDate)
+        let weekDay = intToDay(myComponents.weekday)
+        let dateArray = eventDate.componentsSeparatedByString("/")
+        let month = intToMonth(Int(dateArray[0])!)
+        return weekDay + ", " + month + " " + dateArray[1] + ". " + eventTime
+    }
+    
+    func intToMonth(month :Int) -> String {
+        if (month == 1) {
+            return "Jan"
+        } else if (month == 2) {
+            return "Feb"
+        } else if (month == 3) {
+            return "Mar"
+        } else if (month == 4) {
+            return "Apr"
+        } else if (month == 5) {
+            return "May"
+        } else if (month == 6) {
+            return "Jun"
+        } else if (month == 7) {
+            return "Jul"
+        } else if (month == 8) {
+            return "Aug"
+        } else if (month == 9) {
+            return "Sep"
+        } else if (month == 10) {
+            return "Oct"
+        } else if (month == 11) {
+            return "Nov"
+        } else {
+            return "Dec"
+        }
+    }
+    
+    func intToDay(weekDay :Int) -> String {
+        if (weekDay == 1) {
+            return "Sun"
+        } else if (weekDay == 2) {
+            return "Mon"
+        } else if (weekDay == 3) {
+            return "Tues"
+        } else if (weekDay == 4) {
+            return "Wed"
+        } else if (weekDay == 5) {
+            return "Thu"
+        } else if (weekDay == 6) {
+            return "Fri"
+        } else {
+            return "Sat"
+        }
     }
     
 //    func sendEventClosedNotifications(eventTitle :String) {
@@ -175,22 +188,18 @@ class ViewRallyEvent: UITableViewController {
     }
     
     override func viewDidLoad() {
+        var timer = NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: Selector("countDownUntilChat"), userInfo: nil, repeats: true)
+
         let currentUser = PFUser.currentUser()
-        let eventTitle = rallyEvent["eventTitle"] as! String!
-        self.title = eventTitle
-        if (rallyEvent["groupSponsor"] != nil) {
-            eventSponsor.text = rallyEvent["groupSponsor"] as! String!
-        }
+        let title = rallyEvent["eventTitle"] as! String!
+        eventTitle.text = title
+        self.title = title
         setEventInfo(rallyEvent)
         if (currentUser != nil) {
-            if (hasJoinedEvent(currentUser!, eventTitle: eventTitle)) {
-                joinOrLeaveEvent.setImage(UIImage(named: "LeaveEvent.png"), forState: UIControlState.Normal)
+            if (hasJoinedEvent(currentUser!, eventTitle: title)) {
+                joinOrLeaveEvent.setImage(UIImage(named: "JoinedEvent.png"), forState: UIControlState.Normal)
             } else {
-                joinOrLeaveEvent.setImage(UIImage(named: "AddEvent.png"), forState: UIControlState.Normal)
-            }
-            let eventAdmin = rallyEvent["eventAdmin"] as! String!
-            if (currentUser!.username == eventAdmin) {
-                eventNumAttendees.text = appendPrediction()
+                joinOrLeaveEvent.setImage(UIImage(named: "JoinEvent.png"), forState: UIControlState.Normal)
             }
         }
         //Whatever it says when event is over
@@ -316,15 +325,6 @@ class ViewRallyEvent: UITableViewController {
     }
     
     @IBAction func reportEvent(sender: AnyObject) {
-//        let reportWarning = UIAlertController(title: "Report Rally Event", message: "Are you sure you want to report this event? Our team will investigate and potentially remove this content.", preferredStyle: UIAlertControllerStyle.Alert)
-//        reportWarning.addAction(UIAlertAction(title: "Yes", style: .Default, handler: { (action: UIAlertAction!) in
-//            self.rallyEvent["hasBeenReported"] = true
-//            self.rallyEvent.saveInBackground()
-//            self.displayReportSuccess()
-//        }))
-//        reportWarning.addAction(UIAlertAction(title: "No", style: .Default, handler: { (action: UIAlertAction!) in
-//        }))
-//        presentViewController(reportWarning, animated: true, completion: nil)
         self.rallyEvent["hasBeenReported"] = true
         self.rallyEvent.saveInBackground()
         self.displayReportSuccess()
@@ -346,4 +346,92 @@ class ViewRallyEvent: UITableViewController {
     @IBAction func closeSplashPage(sender: UIStoryboardSegue) {
     }
     
+    
+    //COUNTDOWN STUFF:
+    
+    var daysLeft = 0
+    var hoursLeft = 0
+    var minutesLeft = 0
+    var secondsLeft = 0
+    
+    func countDownUntilChat() {
+        // here we set the current date
+        let date = NSDate()
+        let calendar = NSCalendar.currentCalendar()
+        let components = calendar.components([.Second, .Hour, .Minute, .Month, .Year, .Day], fromDate: date)
+        let second = components.second
+        let hour = components.hour
+        let minutes = components.minute
+        let month = components.month
+        var year = components.year
+        let day = components.day
+        let currentDate = calendar.dateFromComponents(components)
+        
+        // here we set the due date. When the timer is supposed to finish
+        let userCalendar = NSCalendar.currentCalendar()
+        let competitionDate = NSDateComponents()
+        let eventDateAndTime = rallyEvent["eventDate"] as! String
+        var eventArray = eventDateAndTime.componentsSeparatedByString(", ")
+        let dateString = eventArray[0]
+        var dateArray = dateString.componentsSeparatedByString("/")
+
+        //9:00 PM
+        let timeString = eventArray[1]
+        //[9:00, PM]
+        let timeArray = timeString.componentsSeparatedByString(" ")
+        //[9, 00]
+        let hourArray = timeArray[0].componentsSeparatedByString(":")
+        var numHours = Int(hourArray[0])
+        if (timeArray[1] == "PM") {
+            numHours = numHours! + 12
+        }
+        var numYears = Int(dateArray[2])
+        numYears = numYears! + 2000
+        
+        competitionDate.second = 00
+        competitionDate.year = Int(numYears!)
+        competitionDate.month = Int(dateArray[0])!
+        competitionDate.day = Int(dateArray[1])!
+        competitionDate.hour = numHours!
+        competitionDate.minute = Int(hourArray[1])!
+        let competitionDay = userCalendar.dateFromComponents(competitionDate)!
+        
+        // Here we compare the two dates
+        competitionDay.timeIntervalSinceDate(currentDate!)
+        let dayCalendarUnit: NSCalendarUnit = ([.Day, .Hour, .Minute, .Second])
+        
+        //here we change the seconds to hours,minutes and days
+        let CompetitionDayDifference = userCalendar.components(
+            dayCalendarUnit, fromDate: currentDate!, toDate: competitionDay,
+            options: [])
+        
+        //finally, here we set the variable to our remaining time
+        daysLeft = CompetitionDayDifference.day
+        hoursLeft = CompetitionDayDifference.hour
+        minutesLeft = CompetitionDayDifference.minute
+        secondsLeft = CompetitionDayDifference.second
+        
+        if (daysLeft > 0 || hoursLeft > 0 || minutesLeft > 0 || secondsLeft > 0) {
+            eventCountdown.setTitle(String(daysLeft) + " Days, " + String(hoursLeft) + " Hours, " + String(minutesLeft) + " Mins, and " + String(secondsLeft) + " Seconds", forState: .Normal)
+        } else if (eventOngoing(CompetitionDayDifference)) {
+            eventCountdown.setTitle("Join Chat!", forState: .Normal)
+        } else {
+            eventCountdown.setTitle("Event Closed", forState: .Normal)
+        }
+        
+    }
+    
+    func eventOngoing(CompetitionDayDifference :NSDateComponents) -> Bool {
+        //Get event length
+        
+        //Compare length to CompetitionDayDifference
+//        print(CompetitionDayDifference)
+//        if (CompetitionDayDifference.hour)
+        return false
+    }
+    
+    @IBAction func enterChat(sender: AnyObject) {
+    
+    }
+
 }

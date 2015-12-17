@@ -11,19 +11,17 @@ import Parse
 
 class ViewEventFeed: UICollectionViewController, UICollectionViewDelegateFlowLayout, UINavigationControllerDelegate, UIPopoverPresentationControllerDelegate {
     
+    var eventDateOrder = [String:[Int]]()
+    var eventDates = [String]()
+    var eventTitles = [String]()
+    var eventLocations = [String]()
+    var eventImageFiles = [PFFile]()
+    var eventTimes = [String]()
+    var eventNumAttendees = [Int]()
     var currentFilter = "No Filter"
     var previousFilter = "No Filter"
     let reuseIdentifier = "collCell"
     var query = PFQuery(className: "RallyEvent")
-    var eventTitles = [String]()
-    var eventLocations = [String]()
-//    var eventSponsors = [String]()
-    var eventCategories = [String]()
-    var eventDates = [String]()
-//    var eventAttendance = [Float]()
-    var eventImageFiles = [PFFile]()
-    var eventTimes = [String]()
-//    var eventDaysRemain = [Int]()
     var rallyEventList = [PFObject]()
     
     let sectionInsets = UIEdgeInsets(top: 10.0, left: 65.0, bottom: 10.0, right: 65.0)
@@ -71,6 +69,7 @@ class ViewEventFeed: UICollectionViewController, UICollectionViewDelegateFlowLay
                 self.collectionView!.collectionViewLayout.invalidateLayout()
                 self.collectionView!.reloadData()
             }
+            var eventNum = 0
             for event in eventsAttending {
                 query = PFQuery(className: "RallyEvent")
                 query.whereKey("eventTitle", equalTo: event)
@@ -78,15 +77,13 @@ class ViewEventFeed: UICollectionViewController, UICollectionViewDelegateFlowLay
                     (events, error) -> Void in
                     if (error == nil && events?.first != nil) {
                         let event = events!.first as! PFObject
-                        self.getEventTitle(event)
+                        self.getEventDate(event, eventNum: eventNum)
+                        self.getEventTitle(event, eventNum: eventNum)
+                        self.getEventLocation(event, eventNum: eventNum)
+                        self.getEventImage(event, eventNum: eventNum)
+                        self.getEventNumAttendees(event, eventNum: eventNum)
                         self.rallyEventList.append(event)
-//                        self.getEventAttendance(event)
-                        self.getEventImage(event)
-//                        self.getEventCategory(event)
-//                        self.getEventSponsor(event)
-                        self.getEventDate(event)
-                        self.getEventLocation(event)
-//                        self.getDaysRemain(event)
+                        eventNum++
                     }
                     self.collectionView!.reloadData()
                 }
@@ -102,44 +99,36 @@ class ViewEventFeed: UICollectionViewController, UICollectionViewDelegateFlowLay
         return UIInterfaceOrientationMask.Portrait
     }
     
-    func getEventTitle(rallyEvent :AnyObject) {
+    func getEventTitle(rallyEvent :AnyObject, eventNum :Int) {
         self.eventTitles.append(rallyEvent["eventTitle"] as! String)
     }
     
-    func getEventImage(rallyEvent :AnyObject) {
+    func getEventNumAttendees(rallyEvent :AnyObject, eventNum :Int) {
+        self.eventNumAttendees.append(rallyEvent["eventNumAttendees"] as! Int)
+    }
+    
+    func getEventImage(rallyEvent :AnyObject, eventNum :Int) {
         let eventImageFile = rallyEvent["eventImage"] as! PFFile
         self.eventImageFiles.append(eventImageFile)
     }
     
-//    func getEventAttendance(rallyEvent :AnyObject) {
-//        let numRSVP = rallyEvent["eventNumAttendees"] as! Float
-//        let numTarget = rallyEvent["eventTargetNumAttendees"] as! Float
-//        let percentAttendance = numRSVP/numTarget
-//        self.eventAttendance.append(percentAttendance)
-//    }
-    
-//    func getEventCategory(rallyEvent :AnyObject) {
-//        let eventCategory = rallyEvent["eventCategory"] as! String
-//        self.eventCategories.append(eventCategory)
-//    }
-    
-//    func getEventSponsor(rallyEvent :AnyObject) {
-//        let eventSponsor = rallyEvent["eventSponsor"] as! String
-//        self.eventSponsors.append(eventSponsor)
-//    }
-    
-    func getEventLocation(rallyEvent :AnyObject) {
+    func getEventLocation(rallyEvent :AnyObject, eventNum :Int) {
         let eventLocation = rallyEvent["eventLocation"] as! String
         self.eventLocations.append(eventLocation)
     }
     
-    func getEventDate(rallyEvent :AnyObject) {
+    func getEventDate(rallyEvent :AnyObject, eventNum :Int) {
         let eventDate = rallyEvent["eventDate"] as! String
         var eventArray = eventDate.componentsSeparatedByString(", ")
         let dateString = eventArray[0]
         let timeString = eventArray[1]
         self.eventDates.append(dateString)
         self.eventTimes.append(timeString)
+        if (self.eventDateOrder[dateString] == nil) {
+            self.eventDateOrder[dateString] = [eventNum]
+        } else {
+            self.eventDateOrder[dateString]?.append(eventNum)
+        }
     }
     
     // daysRemain = (createdAt + numDaysFundraising) - currentDate
@@ -161,30 +150,74 @@ class ViewEventFeed: UICollectionViewController, UICollectionViewDelegateFlowLay
     
     func resetEventFeed() {
         eventTitles = [String]()
-//        eventAttendance = [Float]()
         eventImageFiles = [PFFile]()
         eventLocations = [String]()
-//        eventSponsors = [String]()
-        eventCategories = [String]()
         rallyEventList = [PFObject]()
         eventDates = [String]()
+        eventDateOrder = [String:[Int]]()
         eventTimes = [String]()
-//        eventDaysRemain = [Int]()
+        eventNumAttendees = [Int]()
     }
     
     func populateEventFeed(rallyEvents :[AnyObject]) {
-        let currentUser = PFUser.currentUser()
+        var eventNum = 0
         for rallyEvent in rallyEvents {
+            getEventDate(rallyEvent, eventNum: eventNum)
+            getEventTitle(rallyEvent, eventNum: eventNum)
+            getEventLocation(rallyEvent, eventNum: eventNum)
+            getEventNumAttendees(rallyEvent, eventNum: eventNum)
+            getEventImage(rallyEvent, eventNum: eventNum)
             rallyEventList.append(rallyEvent as! PFObject)
-            getEventTitle(rallyEvent)
-//            getEventAttendance(rallyEvent)
-            getEventImage(rallyEvent)
-//            getEventCategory(rallyEvent)
-//            getEventSponsor(rallyEvent)
-            getEventLocation(rallyEvent)
-            getEventDate(rallyEvent)
-//            getDaysRemain(rallyEvent)
+            eventNum++
         }
+        let eventOrder = getEventSortedOrder()
+        sortEventFeed(eventOrder)
+    }
+    
+    func sortEventFeed(eventOrder:[(String, [Int])]) {
+        let correctEventOrder = getEventOrder(eventOrder)
+        
+        var newDatesOrder = [String]()
+        var newTimesOrder = [String]()
+        var newTitlesOrder = [String]()
+        var newLocationsOrder = [String]()
+        var newPhotosOrder = [PFFile]()
+        var newNumAttendeesOrder = [Int]()
+        var newEventOrder = [PFObject]()
+        
+        for eventNum in correctEventOrder {
+            newDatesOrder.append(eventDates[eventNum])
+            newTimesOrder.append(eventTimes[eventNum])
+            newTitlesOrder.append(eventTitles[eventNum])
+            newLocationsOrder.append(eventLocations[eventNum])
+            newEventOrder.append(rallyEventList[eventNum])
+            newPhotosOrder.append(eventImageFiles[eventNum])
+            newNumAttendeesOrder.append(eventNumAttendees[eventNum])
+        }
+        
+        eventDates = newDatesOrder
+        eventTimes = newTimesOrder
+        eventTitles = newTitlesOrder
+        eventLocations = newLocationsOrder
+        rallyEventList = newEventOrder
+        eventImageFiles = newPhotosOrder
+        eventNumAttendees = newNumAttendeesOrder
+        
+    }
+    
+    func getEventOrder(eventOrder:[(String, [Int])]) -> [Int] {
+        var newEventOrder = [Int]()
+        for event in eventOrder {
+            newEventOrder.appendContentsOf(event.1)
+        }
+        return newEventOrder
+    }
+    
+    func getEventSortedOrder() -> [(String, [Int])]{
+        let df = NSDateFormatter()
+        df.dateFormat = "MM/dd/yyyy"
+        let myArrayOfTuples = eventDateOrder.sort{ df.dateFromString($0.0)!.compare(df.dateFromString($1.0)!) == .OrderedAscending}
+        return myArrayOfTuples
     }
     
     func uicolorFromHex(rgbValue:UInt32)->UIColor{
@@ -258,12 +291,6 @@ class ViewEventFeed: UICollectionViewController, UICollectionViewDelegateFlowLay
         }
     }
     
-//    func setPercentAttendance(cell :CollectionViewCell, row :Int) {
-//        let percentAttendance = eventAttendance[row] * 100
-//        let numPercent = Int(percentAttendance)
-//        let stringPercent = String(numPercent)
-//    }
-    
     func hasJoinedEvent(currentUser :PFUser, eventTitle :String, rallyEvent :PFObject) -> Bool {
         let usersAttendingEvent = rallyEvent["eventAttendeeUsernames"] as! [String]
         let eventsUserAttending = currentUser["eventsAttending"] as! [String]
@@ -277,28 +304,88 @@ class ViewEventFeed: UICollectionViewController, UICollectionViewDelegateFlowLay
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let currentUser = PFUser.currentUser()
         let event = self.rallyEventList[indexPath.row] as PFObject
-        let eventTitle = event["eventTitle"] as! String!
+        let eventTitle = self.eventTitles[indexPath.row % eventTitles.count]
+        let numAttendees = self.eventNumAttendees[indexPath.row] as Int
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! CollectionViewCell
-        cell.title.text = self.eventTitles[indexPath.row % eventTitles.count]
+        cell.title.text = eventTitle
+        cell.numAttendees.text = String(numAttendees)
         cell.rallyEvent = self.rallyEventList[indexPath.row]
         setEventImage(cell, row: indexPath.row)
-        cell.eventLocation.text = self.eventLocations[indexPath.row]
-        cell.eventDate.text = self.eventDates[indexPath.row]
-        cell.eventTime.text = self.eventTimes[indexPath.row]
+        let dateAndTime = synthesizeDateAndTime(eventDates[indexPath.row], eventTime: eventTimes[indexPath.row])
+        cell.eventDate.text = dateAndTime + " @ " + eventLocations[indexPath.row]
         if (PFUser.currentUser() != nil) {
             if (hasJoinedEvent(currentUser!, eventTitle: eventTitle, rallyEvent: event)) {
-                cell.joinOrLeaveEventButton.setImage(UIImage(named: "LeaveEvent.png"), forState: UIControlState.Normal)
+                cell.joinOrLeaveEventButton.setImage(UIImage(named: "JoinedEvent.png"), forState: UIControlState.Normal)
             } else {
-                cell.joinOrLeaveEventButton.setImage(UIImage(named: "AddEvent.png"), forState: UIControlState.Normal)
+                cell.joinOrLeaveEventButton.setImage(UIImage(named: "JoinEvent.png"), forState: UIControlState.Normal)
             }
         }
         return cell
     }
     
+    func synthesizeDateAndTime(eventDate :String, eventTime :String) -> String {
+        let formatter  = NSDateFormatter()
+        formatter.dateFormat = "M/d/yy"
+        let todayDate = formatter.dateFromString(eventDate)!
+        let myCalendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
+        let myComponents = myCalendar.components(.Weekday, fromDate: todayDate)
+        let weekDay = intToDay(myComponents.weekday)
+        let dateArray = eventDate.componentsSeparatedByString("/")
+        let month = intToMonth(Int(dateArray[0])!)
+        return weekDay + ", " + month + " " + dateArray[1] + ". " + eventTime
+    }
+    
+    func intToMonth(month :Int) -> String {
+        if (month == 1) {
+            return "Jan"
+        } else if (month == 2) {
+            return "Feb"
+        } else if (month == 3) {
+            return "Mar"
+        } else if (month == 4) {
+            return "Apr"
+        } else if (month == 5) {
+            return "May"
+        } else if (month == 6) {
+            return "Jun"
+        } else if (month == 7) {
+            return "Jul"
+        } else if (month == 8) {
+            return "Aug"
+        } else if (month == 9) {
+            return "Sep"
+        } else if (month == 10) {
+            return "Oct"
+        } else if (month == 11) {
+            return "Nov"
+        } else {
+            return "Dec"
+        }
+    }
+    
+    func intToDay(weekDay :Int) -> String {
+        if (weekDay == 1) {
+            return "Sun"
+        } else if (weekDay == 2) {
+            return "Mon"
+        } else if (weekDay == 3) {
+            return "Tues"
+        } else if (weekDay == 4) {
+            return "Wed"
+        } else if (weekDay == 5) {
+            return "Thu"
+        } else if (weekDay == 6) {
+            return "Fri"
+        } else {
+            return "Sat"
+        }
+    }
+    
     func collectionView(collectionView: UICollectionView,
         layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-            return CGSize(width: 300, height: 400)
+            let requiredWidth = collectionView.bounds.size.width
+            return CGSize(width: requiredWidth, height: 420)
     }
     
     func collectionView(collectionView: UICollectionView,

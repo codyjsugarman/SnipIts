@@ -12,7 +12,7 @@ import Parse
 class MyProfile: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     @IBOutlet weak var myProfileImage: UIImageView!
-    @IBOutlet weak var myUsername: UITextField!
+//    @IBOutlet weak var myUsername: UITextField!
 //    @IBOutlet weak var myGroups: UITextField!
     @IBOutlet weak var myEvents: UITableView!    
     
@@ -60,16 +60,17 @@ class MyProfile: UIViewController, UITableViewDelegate, UITableViewDataSource {
     }
     
     func setUserPhoto(currentUser :PFUser) {
-        let userImageFile = currentUser["profilePicture"] as! PFFile
-        userImageFile.getDataInBackgroundWithBlock {
-            (imageData: NSData?, error: NSError?) -> Void in
-            if (error == nil) {
-                if let imageData = imageData {
-                    let image = UIImage(data:imageData)
-                    self.myProfileImage.image = image
-                }
-            }
-        }
+//        let userImageFile = currentUser["profilePicture"] as! PFFile
+//        userImageFile.getDataInBackgroundWithBlock {
+//            (imageData: NSData?, error: NSError?) -> Void in
+//            if (error == nil) {
+//                if let imageData = imageData {
+//                    let image = UIImage(data:imageData)
+//                    self.myProfileImage.image = image
+//                }
+//            }
+//        }
+        myProfileImage.image = UIImage(named:"SnipItsLogo.png")
         myProfileImage.layer.masksToBounds = false
         myProfileImage.layer.cornerRadius = myProfileImage.frame.height/2
         myProfileImage.clipsToBounds = true
@@ -172,7 +173,7 @@ class MyProfile: UIViewController, UITableViewDelegate, UITableViewDataSource {
         filterEvents("My Events", currentUser: currentUser!)
         setProfileInfo(currentUser!)
         setUserPhoto(currentUser!)
-        myUsername.text = currentUser!.username
+//        myUsername.text = currentUser!.username
     }
     
     @IBAction func editUserProfile(sender: AnyObject) {

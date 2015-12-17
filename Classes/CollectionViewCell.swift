@@ -8,21 +8,19 @@
 
 import UIKit
 import Parse
+import MessageUI
 
-class CollectionViewCell: UICollectionViewCell {
+class CollectionViewCell: UICollectionViewCell, MFMessageComposeViewControllerDelegate {
     @IBOutlet weak var title: UILabel!
     @IBOutlet weak var eventImage: UIImageView!
-//    @IBOutlet weak var attendanceProgress: UIProgressView!
-//    @IBOutlet weak var eventCategory: UILabel!
-    @IBOutlet weak var eventLocation: UILabel!
-//    @IBOutlet weak var eventSponsor: UILabel!
-//    @IBOutlet weak var eventPercentSupport: UILabel!
-//    @IBOutlet weak var eventDaysRemain: UILabel!
     @IBOutlet weak var eventDate: UILabel!
-    @IBOutlet weak var eventTime: UILabel!
     @IBOutlet weak var joinOrLeaveEventButton: UIButton!
+    @IBOutlet weak var numAttendees: UILabel!
     
     var rallyEvent: PFObject!
+    
+    func messageComposeViewController(controller: MFMessageComposeViewController, didFinishWithResult result: MessageComposeResult) {
+    }
     
     func addUserToEvent(currentUser :PFUser, inout usersAttendingEvent :[String], eventTitle :String) {
         usersAttendingEvent.append(currentUser.username!)
@@ -103,14 +101,16 @@ class CollectionViewCell: UICollectionViewCell {
             currentInstallation.saveInBackground()
             addUserToEvent(currentUser!, usersAttendingEvent: &usersAttendingEvent, eventTitle: eventTitle)
             informUserJoinedEvent(eventTitle)
-            joinOrLeaveEventButton.setImage(UIImage(named: "LeaveEvent.png"), forState: UIControlState.Normal)
+            joinOrLeaveEventButton.setImage(UIImage(named: "JoinedEvent.png"), forState: UIControlState.Normal)
+            numAttendees.text = String(Int(numAttendees.text!)! + 1)
         // Leave Rally Event
         } else {
             removeEventfromUser(currentUser!, eventsUserAttending: &eventsUserAttending, eventTitle: eventTitle, currentInstallation: currentInstallation)
             currentInstallation.saveInBackground()
             removeUserFromEvent(currentUser!, usersAttendingEvent: &usersAttendingEvent)
             informUserLeftEvent(eventTitle)
-            joinOrLeaveEventButton.setImage(UIImage(named: "AddEvent.png"), forState: UIControlState.Normal)
+            joinOrLeaveEventButton.setImage(UIImage(named: "JoinEvent.png"), forState: UIControlState.Normal)
+            numAttendees.text = String(Int(numAttendees.text!)! - 1)
         }
         rallyEvent.saveInBackground()
         currentUser!.saveInBackground()
