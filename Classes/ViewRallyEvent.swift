@@ -9,12 +9,11 @@
 import UIKit
 import Parse
 import Foundation
+import MessageUI
 
 class ViewRallyEvent: UITableViewController {
     
     var rallyEvent:PFObject!
-    
-    
     @IBOutlet weak var eventCountdown: UIButton!
     @IBOutlet weak var joinOrLeaveEvent: UIButton!
     @IBOutlet weak var eventImage: UIImageView!
@@ -169,22 +168,22 @@ class ViewRallyEvent: UITableViewController {
         return UIInterfaceOrientationMask.Portrait
     }
     
-    func displaySplashPage(currentUser: PFUser) {
-        var displayedSplashPages = currentUser["displayedSplashPages"] as! [Bool!]
-        if (!displayedSplashPages[2]) {
-            self.performSegueWithIdentifier("displayEventSplashPage", sender: self)
-            self.tabBarController!.tabBar.userInteractionEnabled = false
-            displayedSplashPages[2] = true
-            currentUser["displayedSplashPages"] = displayedSplashPages
-            currentUser.saveInBackground()
-        }
-    }
+//    func displaySplashPage(currentUser: PFUser) {
+//        var displayedSplashPages = currentUser["displayedSplashPages"] as! [Bool!]
+//        if (!displayedSplashPages[2]) {
+//            self.performSegueWithIdentifier("displayEventSplashPage", sender: self)
+//            self.tabBarController!.tabBar.userInteractionEnabled = false
+//            displayedSplashPages[2] = true
+//            currentUser["displayedSplashPages"] = displayedSplashPages
+//            currentUser.saveInBackground()
+//        }
+//    }
     
     override func viewDidAppear(animated: Bool) {
-        let currentUser = PFUser.currentUser()
-        if (currentUser != nil) {
-            displaySplashPage(currentUser!)
-        }
+//        let currentUser = PFUser.currentUser()
+//        if (currentUser != nil) {
+//            displaySplashPage(currentUser!)
+//        }
     }
     
     override func viewDidLoad() {
@@ -192,8 +191,8 @@ class ViewRallyEvent: UITableViewController {
 
         let currentUser = PFUser.currentUser()
         let title = rallyEvent["eventTitle"] as! String!
-        eventTitle.text = title
-        self.title = title
+        //eventTitle.text = title
+        //self.title = title
         setEventInfo(rallyEvent)
         if (currentUser != nil) {
             if (hasJoinedEvent(currentUser!, eventTitle: title)) {
@@ -335,10 +334,20 @@ class ViewRallyEvent: UITableViewController {
         reportSuccess.show()
     }
     
+    override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool {
+        if (identifier == "enterEventChat") {
+            if (eventCountdown.currentTitle != "Event Live - Join The Action!") {
+                return false
+            }
+        }
+        return true
+    }
+    
     // Send rallyEvent to next page
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if (segue.identifier == "displayEventAttendees") {
-            let detailController = segue.destinationViewController as! ViewEventAttendees
+        if (segue.identifier == "enterEventChat") {
+            let destinationNavigationController = segue.destinationViewController as! UINavigationController
+            let detailController = destinationNavigationController.topViewController as! MessagesViewController
             detailController.rallyEvent = rallyEvent
         }
     }
@@ -346,6 +355,32 @@ class ViewRallyEvent: UITableViewController {
     @IBAction func closeSplashPage(sender: UIStoryboardSegue) {
     }
     
+//    @IBAction func sendMessage(sender: AnyObject) {
+//        let messageVC = MFMessageComposeViewController()
+//        
+//        messageVC.body = "Enter a message";
+//        messageVC.recipients = ["Enter tel-nr"]
+//        messageVC.messageComposeDelegate = self;
+//        print("A")
+//        self.presentViewController(messageVC, animated: false, completion: nil)
+//        print("B")
+//    }
+//    
+//    func messageComposeViewController(controller: MFMessageComposeViewController, didFinishWithResult result: MessageComposeResult) {
+//        switch (result.rawValue) {
+//        case MessageComposeResultCancelled.rawValue:
+//            print("Message was cancelled")
+//            self.dismissViewControllerAnimated(true, completion: nil)
+//        case MessageComposeResultFailed.rawValue:
+//            print("Message failed")
+//            self.dismissViewControllerAnimated(true, completion: nil)
+//        case MessageComposeResultSent.rawValue:
+//            print("Message was sent")
+//            self.dismissViewControllerAnimated(true, completion: nil)
+//        default:
+//            break;
+//        }
+//    }
     
     //COUNTDOWN STUFF:
     
@@ -359,12 +394,7 @@ class ViewRallyEvent: UITableViewController {
         let date = NSDate()
         let calendar = NSCalendar.currentCalendar()
         let components = calendar.components([.Second, .Hour, .Minute, .Month, .Year, .Day], fromDate: date)
-        let second = components.second
-        let hour = components.hour
-        let minutes = components.minute
-        let month = components.month
-        var year = components.year
-        let day = components.day
+
         let currentDate = calendar.dateFromComponents(components)
         
         // here we set the due date. When the timer is supposed to finish
@@ -414,7 +444,7 @@ class ViewRallyEvent: UITableViewController {
         if (daysLeft > 0 || hoursLeft > 0 || minutesLeft > 0 || secondsLeft > 0) {
             eventCountdown.setTitle(String(daysLeft) + " Days, " + String(hoursLeft) + " Hours, " + String(minutesLeft) + " Mins, and " + String(secondsLeft) + " Seconds", forState: .Normal)
         } else if (eventOngoing(CompetitionDayDifference)) {
-            eventCountdown.setTitle("Join Chat!", forState: .Normal)
+            eventCountdown.setTitle("Event Live - Join The Action!", forState: .Normal)
         } else {
             eventCountdown.setTitle("Event Closed", forState: .Normal)
         }
@@ -423,15 +453,14 @@ class ViewRallyEvent: UITableViewController {
     
     func eventOngoing(CompetitionDayDifference :NSDateComponents) -> Bool {
         //Get event length
-        
+        let eventLength = rallyEvent["eventLength"] as! Int
+
         //Compare length to CompetitionDayDifference
-//        print(CompetitionDayDifference)
-//        if (CompetitionDayDifference.hour)
+        if (abs(CompetitionDayDifference.hour) < eventLength && CompetitionDayDifference.day == 0) {
+            return true
+        }
         return false
     }
     
-    @IBAction func enterChat(sender: AnyObject) {
-    
-    }
 
 }

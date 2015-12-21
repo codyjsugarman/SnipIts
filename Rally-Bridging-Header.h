@@ -8,3 +8,8 @@
 #import <FBSDKLoginKit/FBSDKLoginKit.h>
 #import <Parse/Parse.h>
 #import <Bolts/Bolts.h>
+#import <Firebase/Firebase.h>
+#import "JSQMessagesViewController.h"
+#import "JSQMessages.h"
+#import "JSQMessageData.h"
+

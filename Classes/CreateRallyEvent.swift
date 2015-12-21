@@ -19,13 +19,12 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
     let sponsorPicker = UIPickerView()
     var sponsorPickerOptions = ["No Sponsor"]
     let lengthPicker = UIPickerView()
-    var lengthPickerOptions = ["30 mins", "1 hour", "2 hours", "3 hours", "4 hours", "5 hours", "6 hours", "All day"]
+    var lengthPickerOptions = ["1 hour", "2 hours", "3 hours", "4 hours", "5 hours", "6 hours", "All day"]
     
     @IBOutlet weak var eventImage: UIImageView!
     @IBOutlet weak var eventTitle: UITextField!
     @IBOutlet weak var eventLocation: UITextField!
     @IBOutlet weak var eventCategory: UITextField!
-    @IBOutlet weak var eventSponsor: UITextField!
     @IBOutlet weak var eventDate: UITextField!
     @IBOutlet weak var eventDescription: UITextView!
     @IBOutlet weak var eventLength: UITextField!
@@ -141,12 +140,8 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
     }
     
     func pickerView(pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        // Sponsor
-        if (pickerView.tag == 1) {
-            eventSponsor.text = sponsorPickerOptions[row]
-        }
         // Category
-        else if (pickerView.tag == 2) {
+        if (pickerView.tag == 2) {
             eventCategory.text = categoryPickerOptions[row]
         }
         // Length
@@ -178,21 +173,12 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
     
     // Save/Cancel event actions
     func fieldsFull() -> Bool {
-        if (eventTitle.text == "" || eventDate.text == "" || eventCategory.text == "" || eventDescription.text == "" || eventLocation.text == "" || eventSponsor.text == "" || eventLength.text == "") {
+        if (eventTitle.text == "" || eventDate.text == "" || eventCategory.text == "" || eventDescription.text == "" || eventLocation.text == "" || eventLength.text == "") {
             let fieldsEmptyAlert = UIAlertView(title: "Fields Empty", message: "Please fill out all event fields", delegate: self, cancelButtonTitle: "OK")
             fieldsEmptyAlert.show()
             return false
         }
         return true
-    }
-    
-    func sponsorIsSponsor() -> Bool {
-        if (sponsorPickerOptions.indexOf(eventSponsor.text!) != nil) {
-            return true
-        }
-        let pleaseSelectSponsor = UIAlertView(title: "Please Select a Valid Event Sponsor", message: "If there is no sponsor, select \"No Sponsor\"", delegate: self, cancelButtonTitle: "OK")
-        pleaseSelectSponsor.show()
-        return false
     }
     
     func categoryIsCategory() -> Bool {
@@ -215,7 +201,7 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
     }
     
     func validateEventFields() -> Bool {
-        if (fieldsFull() && sponsorIsSponsor() && categoryIsCategory() && titleIsAlphanumeric()) {
+        if (fieldsFull() && categoryIsCategory() && titleIsAlphanumeric()) {
             return true
         }
         return false
@@ -232,17 +218,36 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
         newRallyEvent["eventTitle"] = eventTitle.text
         newRallyEvent["eventLocation"] = eventLocation.text
         newRallyEvent["eventDate"] = eventDate.text
-        newRallyEvent["eventLength"] = eventLength.text
+        let eventLengthString = eventLength.text
+        let lengthInt = getLengthAsInt(eventLengthString!)
+        newRallyEvent["eventLength"] = lengthInt
         newRallyEvent["eventNumAttendees"] = 1
         newRallyEvent["eventIsHappening"] = false
         let eventAttendees = [currentUser.username] as [String!]
         newRallyEvent["eventAttendeeUsernames"] = eventAttendees
         newRallyEvent["eventAdmin"] = currentUser.username
-        newRallyEvent["eventSponsor"] = eventSponsor.text
         newRallyEvent["eventCategory"] = eventCategory.text
         newRallyEvent["eventDescription"] = eventDescription.text
         newRallyEvent["hasSentSuccessNotification"] = false
         newRallyEvent["hasSentClosedNotification"] = false
+    }
+    
+    func getLengthAsInt(eventLength: String) -> Int {
+        if (eventLength == "1 hour") {
+            return 1
+        } else if (eventLength == "2 hours") {
+            return 2
+        } else if (eventLength == "3 hours") {
+            return 3
+        } else if (eventLength == "4 hours") {
+            return 4
+        } else if (eventLength == "5 hours") {
+            return 5
+        } else if (eventLength == "6 hours") {
+            return 6
+        } else {
+            return 24
+        }
     }
     
     func setCurrentUserAttendingEvent(currentUser: PFUser) {
@@ -256,16 +261,6 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
         currentUser.saveInBackground()
     }
     
-    func sendNewEventNotificationToGroup() {
-        if (eventSponsor.text != "No Sponsor") {
-            let push = PFPush()
-            let groupChannel = eventSponsor.text!.stringByReplacingOccurrencesOfString(" ", withString: "")
-            push.setChannel(groupChannel)
-            push.setMessage("A new event - \(eventTitle.text) - has just been created by \(eventSponsor.text)!")
-            push.sendPushInBackground()
-        }
-    }
-    
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if (segue.identifier == "saveNewRallyEvent") {
             let currentUser = PFUser.currentUser()
@@ -273,7 +268,6 @@ class CreateRallyEvent: UITableViewController, UIImagePickerControllerDelegate, 
                 let newRallyEvent = PFObject(className:"RallyEvent")
                 populateRallyEventFields(newRallyEvent, currentUser: currentUser!)
                 setCurrentUserAttendingEvent(currentUser!)
-                sendNewEventNotificationToGroup()
                 newRallyEvent.saveInBackground()
                 let viewRallyEventFeed = segue.destinationViewController as! ViewEventFeed
                 viewRallyEventFeed.loadNewEvent()

@@ -24,7 +24,7 @@ class ViewEventFeed: UICollectionViewController, UICollectionViewDelegateFlowLay
     var query = PFQuery(className: "RallyEvent")
     var rallyEventList = [PFObject]()
     
-    let sectionInsets = UIEdgeInsets(top: 10.0, left: 65.0, bottom: 10.0, right: 65.0)
+    let sectionInsets = UIEdgeInsets(top: 0.0, left: 65.0, bottom: 0.0, right: 65.0)
     
     @IBOutlet weak var subview: UIView!
     
@@ -238,8 +238,39 @@ class ViewEventFeed: UICollectionViewController, UICollectionViewDelegateFlowLay
         }
     }
     
+    func createUserProfile() {
+        let rallyUser = PFUser()
+        rallyUser.username = randomStringWithLength(10) as String
+        rallyUser.password = ""
+        rallyUser["eventsAttending"] = [String]()
+        rallyUser["groupsMemberOf"] = [String]()
+        rallyUser["displayedSplashPages"] = [false, false, false]
+        let userPlaceholderImage = UIImage(named:"BlankProfile.png")
+        let imageData = UIImageJPEGRepresentation(userPlaceholderImage!, 0.5)
+        let imageFile = PFFile(data:imageData!)
+        rallyUser["profilePicture"] = imageFile
+        rallyUser.signUpInBackground()
+        rallyUser.save()
+        let alert = UIAlertView(title: "Success", message: "Welcome to SnipIts!", delegate: self, cancelButtonTitle: "OK")
+        alert.show()
+    }
+    
+    func randomStringWithLength (len : Int) -> NSString {
+        let letters : NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        let randomString : NSMutableString = NSMutableString(capacity: len)
+        for (var i=0; i < len; i++){
+            let length = UInt32 (letters.length)
+            let rand = arc4random_uniform(length)
+            randomString.appendFormat("%C", letters.characterAtIndex(Int(rand)))
+        }
+        return randomString
+    }
+    
     override func viewDidAppear(animated: Bool) {
         let currentUser = PFUser.currentUser()
+        if (currentUser == nil) {
+            createUserProfile()
+        }
         if (currentUser != nil) {
             displaySplashPage(currentUser!)
         }
