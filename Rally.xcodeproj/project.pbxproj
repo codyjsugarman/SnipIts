@@ -1271,8 +1271,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"<Multiple",
 					"values>",
-					"$(SRCROOT)/**",
-					"$(PROJECT_DIR)/Frameworks/Firebase",
+					"/Users/codysugarman/Desktop/SnipIts/Frameworks/Firebase/**",
 				);
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = (
 					"$(inherited)",
@@ -1281,7 +1280,7 @@
 					"/Users/codysugarman/Downloads/parse-library-1",
 					/Users/codysugarman/Documents/FacebookSDK,
 					"/Users/codysugarman/Downloads/parse-library-1-3",
-					"/Users/codysugarman/Desktop/SnipIts/Frameworks/Firebase/**",
+					"/Users/codysugarman/Desktop/SnipIts/Frameworks/Firebase/Firebase.framework/**",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1306,8 +1305,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"<Multiple",
 					"values>",
-					"$(SRCROOT)/**",
-					"$(PROJECT_DIR)/Frameworks/Firebase",
+					"/Users/codysugarman/Desktop/SnipIts/Frameworks/Firebase/**",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;

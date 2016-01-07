@@ -221,6 +221,7 @@ class ViewRallyEvent: UITableViewController {
                 joinOrLeaveEvent.setImage(UIImage(named: "JoinEvent.png"), forState: UIControlState.Normal)
             }
         }
+
         //Whatever it says when event is over
 //        if (eventTimeRemaining.text == "Event Closed") {
 //            joinOrLeaveEvent.setTitle("Event Closed", forState: .Normal)
@@ -465,10 +466,10 @@ class ViewRallyEvent: UITableViewController {
             eventCountdown.setTitle(String(daysLeft) + " Days, " + String(hoursLeft) + " Hours, " + String(minutesLeft) + " Mins, and " + String(secondsLeft) + " Seconds", forState: .Normal)
         } else if (eventOngoing(CompetitionDayDifference)) {
             eventCountdown.setTitle("Event Live - Join The Action!", forState: .Normal)
+            eventCountdown.setTitleColor(UIColor.blueColor(), forState: UIControlState.Normal)
         } else {
             eventCountdown.setTitle("Event Closed", forState: .Normal)
         }
-        
     }
     
     func eventOngoing(CompetitionDayDifference :NSDateComponents) -> Bool {

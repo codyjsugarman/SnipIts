@@ -12,14 +12,13 @@ import Foundation
 class MessagesViewController: JSQMessagesViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     var rallyEvent:PFObject!
     let imagePicker = UIImagePickerController()
-    
     var imageToSend = UIImage()
     var messages = [JSQMessage]()
     let incomingBubble = JSQMessagesBubbleImageFactory().incomingMessagesBubbleImageWithColor(UIColor(red: 10/255, green: 180/255, blue: 230/255, alpha: 1.0))
     let outgoingBubble = JSQMessagesBubbleImageFactory().outgoingMessagesBubbleImageWithColor(UIColor.lightGrayColor())
     
     var avatars = Dictionary<String, JSQMessagesAvatarImage>()
-    
+    var isSendingImage = false
     var outgoingBubbleImageView = JSQMessagesBubbleImageFactory().outgoingMessagesBubbleImageWithColor(UIColor.jsq_messageBubbleLightGrayColor())
     var incomingBubbleImageView = JSQMessagesBubbleImageFactory().incomingMessagesBubbleImageWithColor(UIColor.jsq_messageBubbleGreenColor())
         
@@ -57,15 +56,23 @@ class MessagesViewController: JSQMessagesViewController, UIImagePickerController
     func sendMessage(text: String!, sender: String!) {
         // *** STEP 3: ADD A MESSAGE TO FIREBASE
         var data: NSData = NSData()
-        if let image = imageToSend as? UIImage {
-            data = UIImageJPEGRepresentation(image,0.1)!
+        
+        let image: UIImage? = imageToSend
+        if (isSendingImage == true) {
+            data = UIImageJPEGRepresentation(image!,0.1)!
+            let base64String = data.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
+            messagesRef.childByAutoId().setValue([
+                "text":text,
+                "sender":sender,
+                "imageUrl":base64String
+                ])
+        } else {
+            messagesRef.childByAutoId().setValue([
+                "text":text,
+                "sender":sender,
+                ])
         }
-        let base64String = data.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
-        messagesRef.childByAutoId().setValue([
-            "text":text,
-            "sender":sender,
-            "imageUrl":base64String
-            ])
+        self.isSendingImage = false
     }
     
     
@@ -75,10 +82,7 @@ class MessagesViewController: JSQMessagesViewController, UIImagePickerController
                 if let data = NSData(contentsOfURL: url) {
                     let image = UIImage(data: data)
                     let diameter = incoming ? UInt(collectionView!.collectionViewLayout.incomingAvatarViewSize.width) : UInt(collectionView!.collectionViewLayout.outgoingAvatarViewSize.width)
-                    
-                    
                     let avatarImage = JSQMessagesAvatarImageFactory.avatarImageWithImage(image, diameter: diameter)
-                    
                     avatars[name] = avatarImage
                     return
                 }
@@ -108,7 +112,7 @@ class MessagesViewController: JSQMessagesViewController, UIImagePickerController
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        automaticallyScrollsToMostRecentMessage = true
+        self.automaticallyScrollsToMostRecentMessage = true
         imagePicker.delegate = self
         let eventTitle = rallyEvent["eventTitle"] as? String
         self.title = eventTitle
@@ -128,8 +132,10 @@ class MessagesViewController: JSQMessagesViewController, UIImagePickerController
     }
     
     override func viewWillAppear(animated: Bool) {
-        self.senderId = "Anonymouss"
-        self.senderDisplayName = "Anonymouss"
+        let currentUser = PFUser.currentUser()
+        let username = currentUser?.username
+        self.senderId = username
+        self.senderDisplayName = "Anonymous"
         self.senderImageUrl = ""
     }
     
@@ -281,31 +287,33 @@ class MessagesViewController: JSQMessagesViewController, UIImagePickerController
     
     
 //  View  usernames above bubbles
-    override func collectionView(collectionView: JSQMessagesCollectionView!, attributedTextForMessageBubbleTopLabelAtIndexPath indexPath: NSIndexPath!) -> NSAttributedString! {
-        let data = self.collectionView(self.collectionView, messageDataForItemAtIndexPath: indexPath)
-        if (self.senderDisplayName == data.senderDisplayName()) {
-            return nil
-        }
-        return NSAttributedString(string: data.senderDisplayName())
-    }
+//    override func collectionView(collectionView: JSQMessagesCollectionView!, attributedTextForMessageBubbleTopLabelAtIndexPath indexPath: NSIndexPath!) -> NSAttributedString! {
+//        let data = self.collectionView(self.collectionView, messageDataForItemAtIndexPath: indexPath)
+//        if (self.senderDisplayName == data.senderDisplayName()) {
+//            return nil
+//        }
+//        return NSAttributedString(string: data.senderDisplayName())
+//    }
     
     func imagePickerControllerDidCancel(picker: UIImagePickerController) {
         dismissViewControllerAnimated(true, completion: nil)
+        isSendingImage = false
     }
     
     func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
         //Do whatever with info
         self.imageToSend = info[UIImagePickerControllerOriginalImage] as! UIImage
+        isSendingImage = true
         sendMessage("", sender: self.sender)
         dismissViewControllerAnimated(true, completion: nil)
     }
     
-    override func collectionView(collectionView: JSQMessagesCollectionView!, layout collectionViewLayout: JSQMessagesCollectionViewFlowLayout!, heightForMessageBubbleTopLabelAtIndexPath indexPath: NSIndexPath!) -> CGFloat {
-        let data = self.collectionView(self.collectionView, messageDataForItemAtIndexPath: indexPath)
-        if (self.senderDisplayName == data.senderDisplayName()) {
-            return 0.0
-        }
-        return kJSQMessagesCollectionViewCellLabelHeightDefault
-    }
+//    override func collectionView(collectionView: JSQMessagesCollectionView!, layout collectionViewLayout: JSQMessagesCollectionViewFlowLayout!, heightForMessageBubbleTopLabelAtIndexPath indexPath: NSIndexPath!) -> CGFloat {
+//        let data = self.collectionView(self.collectionView, messageDataForItemAtIndexPath: indexPath)
+//        if (self.senderDisplayName == data.senderDisplayName()) {
+//            return 0.0
+//        }
+//        return kJSQMessagesCollectionViewCellLabelHeightDefault
+//    }
 
 }
