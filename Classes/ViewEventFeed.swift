@@ -69,7 +69,7 @@ class ViewEventFeed: UICollectionViewController, UICollectionViewDelegateFlowLay
         dispatch_after(delayTime, dispatch_get_main_queue()){
             uploadingNewEvent.dismissWithClickedButtonIndex(-1, animated: true)
             self.viewWillAppear(true)
-            let newRallyEventCreated = UIAlertView(title: "New Rally Event Created", message: "Congratulations! You're ready to start Rallying!", delegate: self, cancelButtonTitle: "OK")
+            let newRallyEventCreated = UIAlertView(title: "New SnipIts Event Created", message: "Congratulations! You're event is live!", delegate: self, cancelButtonTitle: "OK")
             newRallyEventCreated.show()
         }
         self.collectionView!.reloadData()

@@ -61,7 +61,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let navigationBarAppearace = UINavigationBar.appearance()
         
         navigationBarAppearace.barTintColor = uicolorFromHex(0x399a97)
-        navigationBarAppearace.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Avenir Next", size: 18)!,  NSForegroundColorAttributeName: UIColor.whiteColor()]
+        navigationBarAppearace.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Avenir Next", size: 22)!,  NSForegroundColorAttributeName: UIColor.whiteColor()]
         navigationBarAppearace.tintColor = UIColor.whiteColor()
         
         //Initialize Parse

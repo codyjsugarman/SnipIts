@@ -66,7 +66,7 @@ class MessagesViewController: JSQMessagesViewController, UIImagePickerController
                 "sender":sender,
                 "imageUrl":base64String
                 ])
-        } else {
+        } else { 
             messagesRef.childByAutoId().setValue([
                 "text":text,
                 "sender":sender,
